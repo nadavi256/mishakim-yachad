@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Icon } from "../components/icons";
+import { SafetyMenu } from "../components/SafetyMenu";
 import { Phone } from "../components/shell";
 import { Avatar, Brand, Cover, SportBadge } from "../components/visuals";
 import { useMe, useStore } from "../data/store";
@@ -71,6 +72,7 @@ export function ProfileScreen() {
         <Link className="setting-row" to="/settings/notifications"><Icon name="bell" size={18} /><span>התראות</span><Icon name="chevron" size={16} /></Link>
         <Link className="setting-row" to="/settings/privacy"><Icon name="shield" size={18} /><span>פרטיות וחסימות</span><Icon name="chevron" size={16} /></Link>
         <Link className="setting-row" to="/settings/help"><Icon name="help" size={18} /><span>עזרה ותמיכה</span><Icon name="chevron" size={16} /></Link>
+        <Link className="setting-row" to="/login"><Icon name="user" size={18} /><span>כניסה עם Google</span><Icon name="chevron" size={16} /></Link>
       </section>
     </Phone>
   );
@@ -95,12 +97,10 @@ function ProfileHero({ profileId }: { profileId: string }) {
 export function PublicProfileScreen({ selfView = false }: { selfView?: boolean }) {
   const params = useParams();
   const me = useMe();
-  const { state, toggleSavedProfile, toggleFollow, blockUser, report, toast } = useStore();
+  const { state, toggleSavedProfile, toggleFollow, toast } = useStore();
   const userId = selfView ? me.user_id : params.id ?? "";
   const profile = profileById(state, userId);
   const navigate = useNavigate();
-  const [reason, setReason] = useState("התנהגות לא הולמת");
-  const [openReport, setOpenReport] = useState(false);
   if (!profile || profile.visibility !== "public" && profile.user_id !== me.user_id) {
     return <Phone screen="public-profile" nav={false}><p className="empty">הפרופיל לא זמין.</p></Phone>;
   }
@@ -139,18 +139,9 @@ export function PublicProfileScreen({ selfView = false }: { selfView?: boolean }
         ))}
       </section>
       {!isSelf && (
-        <div className="pad" style={{ display: "flex", gap: 8 }}>
-          <button type="button" className="btn" onClick={() => setOpenReport(true)}>דיווח</button>
-          <button type="button" className="btn" onClick={() => { blockUser(profile.user_id); navigate(-1); }}>חסימה</button>
+        <div className="pad">
+          <SafetyMenu reportTitle="דיווח על פרופיל" subjectType="profile" subjectId={profile.user_id} blockUserId={profile.user_id} />
         </div>
-      )}
-      {openReport && (
-        <form className="form" onSubmit={(event) => { event.preventDefault(); report({ subject_type: "profile", subject_id: profile.user_id, reason, details: "" }); setOpenReport(false); }}>
-          <label className="field">סיבה
-            <input value={reason} onChange={(event) => setReason(event.target.value)} />
-          </label>
-          <button className="btn primary" type="submit">שליחת דיווח</button>
-        </form>
       )}
     </Phone>
   );
@@ -277,7 +268,7 @@ export function SettingsScreen() {
       {key === "notifications" && <div className="note-card"><p>מרכז ההתראות בתוך האפליקציה פעיל גם בלי אישור להתראות במכשיר. בגרסה הזו אין דחיפה למכשיר.</p></div>}
       {key === "privacy" && (
         <div className="stack">
-          <div className="note-card"><p>מספר טלפון, כתובת בית והיסטוריית השתתפות לא מוצגים לאחרים. נקודת המפגש היא מקום שהמארגן בחר לשתף.</p></div>
+          <div className="note-card"><p>מספר טלפון, כתובת בית ומיקום מדויק של קטין לא מוצגים לאחרים. לאחרים מוצג רק אזור. נקודת המפגש של פעילות היא מקום שהמארגן בחר לשתף.</p></div>
           <h2 style={{ fontSize: 16, paddingInline: 4 }}>חסימות</h2>
           {state.blockedUserIds.length === 0 && <p className="meta" style={{ paddingInline: 4 }}>אין משתמשים חסומים.</p>}
           {state.blockedUserIds.map((id) => {

@@ -25,4 +25,4 @@ npm run dev
 
 ## מבנה הנתונים
 
-`src/data` מגדיר את אותן ישויות שסופאבייס יחזיק אחר כך (פרופיל, פעילות, השתתפות, הודעות). `createRepository()` מחזיר מאגר בזיכרון. מעבר לסופאבייס יהיה דרך `VITE_DATA_BACKEND=supabase` אחרי שיהיה פרויקט — הקובץ `supabaseRepository.ts` עדיין לא מתחבר לרשת.
+בלי `VITE_SUPABASE_URL` ו-`VITE_SUPABASE_ANON_KEY` האפליקציה נשארת על נתוני הדמה, כולל האתר ב-GitHub Pages. חיבור Google וסופאבייס מתואר ב-[SETUP.md](SETUP.md).

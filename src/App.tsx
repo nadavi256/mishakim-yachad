@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthProvider";
 import { Toasts } from "./components/shell";
 import { StoreProvider } from "./data/store";
 import { ActivityScreen, ChatScreen } from "./screens/ActivityScreen";
@@ -15,6 +16,8 @@ import {
   SavedPeopleScreen,
   SettingsScreen,
 } from "./screens/ProfileScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { OnboardingScreen } from "./screens/OnboardingScreen";
 import { PublishScreen } from "./screens/PublishScreen";
 
 function ScrollReset() {
@@ -41,6 +44,8 @@ function AppRoutes() {
         <Route path="/saved/activities" element={<SavedActivitiesScreen />} />
         <Route path="/settings/:key" element={<SettingsScreen />} />
         <Route path="/notifications" element={<NotificationsScreen />} />
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/activity/:id" element={<ActivityScreen />} />
         <Route path="/activity/:id/chat" element={<ChatScreen />} />
         <Route path="/publish/:step" element={<PublishScreen />} />
@@ -54,9 +59,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <StoreProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
+      <AuthProvider>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </AuthProvider>
     </StoreProvider>
   );
 }
