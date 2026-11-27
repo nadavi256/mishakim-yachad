@@ -1,14 +1,11 @@
 import { MemoryRepository } from "./memoryRepository";
-import { createSupabaseRepository } from "./supabaseRepository";
 
 /**
- * `VITE_DATA_BACKEND=supabase` is the future switch. It is intentionally not
- * wired to a live project in this version.
+ * Activities stay on the in-memory mock until a later milestone.
+ * Google sign-in uses VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY when both are set,
+ * and does not replace this store. With the vars missing, the Pages demo is unchanged.
  */
 export function createRepository(): MemoryRepository {
-  if (import.meta.env.VITE_DATA_BACKEND === "supabase") {
-    createSupabaseRepository();
-  }
   return new MemoryRepository();
 }
 

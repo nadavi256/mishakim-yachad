@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/icons";
+import { SafetyMenu } from "../components/SafetyMenu";
 import { Overlay, Phone } from "../components/shell";
 import { Avatar, Brand, Cover, ParkMap, SportBadge } from "../components/visuals";
 import { useMe, useStore } from "../data/store";
@@ -18,8 +19,6 @@ export function ActivityScreen() {
   const store = useStore();
   const { state, toast } = store;
   const activity = state.activities.find((a) => a.id === id);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [reason, setReason] = useState("תוכן לא הולם");
   const [cancelOpen, setCancelOpen] = useState(false);
   if (!activity || (activity.status === "draft" && activity.owner_id !== me.user_id)) {
     return (
@@ -56,14 +55,6 @@ export function ActivityScreen() {
       nav={false}
       overlay={
         <>
-          {reportOpen && (
-            <Overlay title="דיווח על פעילות" onClose={() => setReportOpen(false)}>
-              <form onSubmit={(event) => { event.preventDefault(); store.report({ subject_type: "activity", subject_id: activity.id, reason, details: "" }); setReportOpen(false); }}>
-                <label className="field">סיבה<input value={reason} onChange={(e) => setReason(e.target.value)} /></label>
-                <button className="btn primary block" type="submit" style={{ marginTop: 8 }}>שליחה</button>
-              </form>
-            </Overlay>
-          )}
           {cancelOpen && (
             <Overlay title="ביטול הפעילות" onClose={() => setCancelOpen(false)}>
               <p>הפעילות תסומן כמבוטלת ולא תקבל נרשמים חדשים. אין כאן החזר כספי.</p>
@@ -157,7 +148,12 @@ export function ActivityScreen() {
             <Icon name="people" />
           </button>
         )}
-        <button type="button" className="linkish" onClick={() => setReportOpen(true)}>דיווח על הפעילות</button>
+        <SafetyMenu
+          reportTitle="דיווח על פעילות"
+          subjectType="activity"
+          subjectId={activity.id}
+          blockUserId={isOwner ? undefined : activity.owner_id}
+        />
       </div>
     </Phone>
   );
@@ -168,9 +164,13 @@ export function ChatScreen() {
   const navigate = useNavigate();
   const { state, sendMessage, toast } = useStore();
   const [text, setText] = useState("");
+  const [reportMessageId, setReportMessageId] = useState<string | null>(null);
   const activity = state.activities.find((a) => a.id === id);
   const allowed = activity ? canAccessChat(state, activity.id, CURRENT_USER_ID) : false;
-  const messages = state.messages.filter((m) => m.activity_id === id);
+  const messages = state.messages.filter(
+    (m) => m.activity_id === id && (m.sender_id === CURRENT_USER_ID || !state.blockedUserIds.includes(m.sender_id)),
+  );
+  const organizerId = activity && activity.owner_id !== CURRENT_USER_ID ? activity.owner_id : undefined;
   return (
     <Phone screen="chat" nav={false} cta={allowed ? (
       <form className="composer" onSubmit={(event) => {
@@ -185,10 +185,22 @@ export function ChatScreen() {
     ) : undefined}>
       <button type="button" className="back-link" onClick={() => navigate(-1)}><Icon name="back" size={18} />חזרה</button>
       <div className="page-title"><h1>צ'אט</h1><p className="sub">{activity?.title}</p></div>
+      {allowed && activity && (
+        <div className="pad">
+          <SafetyMenu
+            reportTitle={reportMessageId ? "דיווח על הודעה" : "דיווח על השיחה"}
+            subjectType={reportMessageId ? "message" : "activity"}
+            subjectId={reportMessageId ?? activity.id}
+            blockUserId={organizerId}
+            autoOpenReport={reportMessageId}
+          />
+          <p className="help">אין שיחה פרטית. הצ'אט פתוח רק למארגן ולמשתתפים שאושרו באותה פעילות.</p>
+        </div>
+      )}
       {!allowed && (
         <div className="empty">
           <h2>הצ'אט סגור</h2>
-          <p>הצ'אט פתוח רק למארגן ולמשתתפים שאושרו. בקשה ממתינה לא פותחת אותו, ואין כאן מספרי טלפון.</p>
+          <p>הצ'אט פתוח רק למארגן ולמשתתפים שאושרו. בקשה ממתינה לא פותחת אותו, ואין כאן מספרי טלפון. אין שיחה פרטית בין קטין לבגיר.</p>
         </div>
       )}
       {allowed && (
@@ -200,6 +212,9 @@ export function ChatScreen() {
               <div key={message.id} className={`bubble${mine ? " mine" : ""}`}>
                 <b>{sender?.display_name ?? "משתתף"}</b>
                 <span>{message.body}</span>
+                {!mine && (
+                  <button type="button" className="text-btn" onClick={() => setReportMessageId(message.id)}>דיווח על ההודעה</button>
+                )}
               </div>
             );
           })}

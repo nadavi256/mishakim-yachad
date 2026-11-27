@@ -1,0 +1,31 @@
+# Local Supabase config. The hosted project is created separately on the free plan.
+# Google sign-in is enabled in the hosted dashboard, not with a secret in this file.
+
+project_id = "mishakim-yachad"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "https://nadavi256.github.io/mishakim-yachad/"
+additional_redirect_urls = [
+  "https://nadavi256.github.io/mishakim-yachad/",
+  "http://localhost:5173/mishakim-yachad/"
+]
+enable_signup = true
+
+[auth.external.google]
+enabled = false
